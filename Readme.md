@@ -191,7 +191,7 @@
     }
 ```
 # Test Result
-![image-20210805150956679](C:\Users\2294765\source\repos\Comm100\image-20210805150956679.png)
+![image-20210805150956679](https://github.com/MorningstarJerry/Comm100/blob/main/Pics/1.png)
 
 
 #Question3 DB Design
