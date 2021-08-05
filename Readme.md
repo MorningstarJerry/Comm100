@@ -1,4 +1,5 @@
 #Question1 Class Design
+
 ```
   public interface IChat
     {
@@ -189,8 +190,13 @@
         }
     }
 ```
+# Test Result
+![image-20210805150956679](C:\Users\2294765\source\repos\Comm100\image-20210805150956679.png)
+
+
 #Question3 DB Design
 --------------------------
+
 ## TicketsMaster Ticketing 信息主表 
 ```
 CREATE TABLE `ticketsmaster` (
