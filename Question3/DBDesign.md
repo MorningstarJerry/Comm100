@@ -1,138 +1,242 @@
-# 大数据和算法面试题
---------------------------
-
-## Javascript:
-===================
-1.闭包的概念？
-2.==、===区别
-
-Vue
-===================
-### computed vs watch 区别
-
-### 指令
-
-### 自定义指令
+#Question1 Class Design
 ```
-Vue.directive('my-directive', {
-    bind: function () {
-    // 准备工作
-    // 例如，添加事件处理器或只需要运行一次的高耗任务
-    },
-    update: function (newValue, oldValue) {
-    // 值更新时的工作
-    // 也会以初始值为参数调用一次
-    },
-    unbind: function () {
-    // 清理工作
-    // 例如，删除 bind() 添加的事件监听器
+  public interface IChat
+    {
+        void Join(Agent agent);
+        bool Start();
+        bool Stop();
+        bool Send(User from, User to);
+        bool Receive(User from, User to);
     }
-})
+
+  public class Chat:IChat
+    {
+        public Guid Id { get; set; }
+        private int _status = 0;  /*0:INIT 1:START 2:STOP */
+        public Visitor Visitor { get; set; }
+        public List<Agent> Agents { get; set; }
+        private readonly ILogger<Worker> _logger;
+
+        public Chat(Visitor visitor, ILogger<Worker> logger)
+        {
+            this.Visitor = visitor;
+            this.Agents = new List<Agent>();
+            this.Id = Guid.NewGuid();
+            this._logger = logger;
+            _logger.LogInformation("INIT-chat:{chatId} init at: {time}",this.Id , DateTimeOffset.Now);
+        }
+
+        public bool Start()
+        {
+            _logger.LogInformation("START-chat:{chatId} Start at: {time}", this.Id, DateTimeOffset.Now);
+            this._status = 1;
+            return true;
+        }
+
+        public bool Stop()
+        {
+            this._status = 2;
+            return true;
+        }
+
+        public bool Send(User from, User to)
+        {
+            _logger.LogInformation("SEND-chat:{chatId} Send from:{from} to:{to} at: {time}", this.Id, from.Id, to.Id, DateTimeOffset.Now);
+            return true;
+        }
+
+        public bool Receive(User from, User to)
+        {
+            _logger.LogInformation("RECEIVE:chat:{chatId} Receive from:{from} to:{to} at: {time}", this.Id, from.Id, to.Id, DateTimeOffset.Now);
+            return true;
+        }
+
+        public void Join(Agent agent)
+        {
+            this.Agents.Add(agent);
+            _logger.LogInformation("JOIN:chat:{chatId} add Agent: {Agent} at: {time}", this.Id, agent.Id, DateTimeOffset.Now);
+        }
+    }
+
+    public class User
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class Agent : User
+    {
+        private readonly ILogger<Worker> _logger;
+
+        public Agent(ILogger<Worker> logger)
+        {
+            this._logger = logger;
+            this.Id = Guid.NewGuid();
+            _logger.LogInformation("Agent: {Agent} created at: {time}", this.Id, DateTimeOffset.Now);
+        }
+
+        public void Join(IChat chat)
+        {
+            chat.Join(this);
+        }
+
+        public void Accept(IChat chat)
+        {
+            chat.Start();
+        }
+    }
+
+     public class Visitor: User
+    {
+        private readonly ILogger<Worker> _logger;
+
+        public Visitor(ILogger<Worker> logger)
+        {
+            this._logger = logger;
+            this.Id = Guid.NewGuid();
+            _logger.LogInformation("Visitor: {Visitor} created at: {time}", this.Id, DateTimeOffset.Now);
+        }
+    }
+
 ```
-Java
-======================================
-1.DI/AOP
-2.TCP 三次握手 和 四次挥手？
-3.简述Http请求get和post的区别以及数据包格式
-4.Http 无状态的什么意思？
-5.Redis 缓存穿透和缓存雪崩？
+#Question2 
+```
+    public class Calculator
+    {
+        public static long GetOnLineTime(long start, long end, Log[] logs)
+        {
+            long total = 0;
+            if ((1).Equals(logs.Length))
+            {
+                if ((0).Equals(logs.Last().Action))
+                {//last is logout
+                    //total = logs.Last().Time;
+                    total = 0;
+                }
+                else
+                {
+                    //last is login
+                    total = (end - logs.Last().Time);
+                }
+            }
+            else
+            {
+                if ((0).Equals(logs.Last().Action))
+                {//last is logout
+                    total += 0;
+                }
+                else
+                {
+                    //last is login
+                    total += (end - logs.Last().Time);
+                }
+
+                end = logs.Last().Time;
+                var newLen = logs.Length - 1;
+                Log[] newLogs = new Log[newLen];
+                Array.ConstrainedCopy(logs, 0, newLogs, 0, newLen);
+
+                total += GetOnLineTime(start, end, newLogs);
+            }
+
+            return total;
+        }
 
 
-架构
-=============================================
-1.讲讲微服务架构
-2.讲解 DDD
-3.Docker 进入容器命令 Docker attach 和 Docker exec
-4.Kubernetes Deploymet 和 Stateful 区别？
-5.K8s Service 是什么？
+        public static long[] GetOnlineTimePerDay(long start, long end, Log[] logs)
+        {
+            List<long> arys = new List<long>();
+            GetOnlineTimeLists(start, end, logs, arys);
+            arys.RemoveAll(x => x.Equals(0));
+            return arys.ToArray().Reverse().ToArray();
+        }
 
 
-数据结构
-================
-ArrayList和LinkedList有什么区别。
-排序算法有哪些？ 哪个效率最高？
+        public static void GetOnlineTimeLists(long start, long end, Log[] logs, List<long> arys)
+        {
+            if ((1).Equals(logs.Length))
+            {
+                if ((0).Equals(logs.Last().Action))
+                {//last is logout
+                    //total = logs.Last().Time;
+                    arys.Add(0);
+                }
+                else
+                {
+                    //last is login
+                    arys.Add(end - logs.Last().Time);
+                }
+            }
+            else
+            {
+                if ((0).Equals(logs.Last().Action))
+                {//last is logout
+                    arys.Add(0);
+                }
+                else
+                {
+                    //last is login
+                    arys.Add(end - logs.Last().Time);
+                }
 
+                end = logs.Last().Time;
+                var newLen = logs.Length - 1;
+                Log[] newLogs = new Log[newLen];
+                Array.ConstrainedCopy(logs, 0, newLogs, 0, newLen);
 
-大数据
-======================================
+                GetOnlineTimeLists(start, end, newLogs, arys);
+            }
+        }
+    }
+```
+#Question3 DB Design
+--------------------------
+## TicketsMaster Ticketing 信息主表 
+```
+CREATE TABLE `ticketsmaster` (
+  `Id` char(36) NOT NULL,
+  `TenantId` char(36) DEFAULT NULL COMMENT '租户 Id ',
+  `Title` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `Descroption` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `CreationTime` datetime(6) NOT NULL,
+  `Status` char(1) NOT NULL COMMENT '状态',
+  `Assignee` char(36) DEFAULT NULL,
+  `Department` char(36) DEFAULT NULL,
+  PRIMARY KEY (`Id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-MapReduce过程
-MapReduce分为两个阶段: Map 和 Ruduce.
+CREATE TABLE `ticketsdetails` (
+  `Id` char(36) NOT NULL,
+  `TicketId` char(36) DEFAULT NULL COMMENT '主表 TicketId 关联',
+  `CustomMapId` char(36) DEFAULT NULL COMMENT '关联定制表 Id',
+  `CustomTypeVal` char(36) NOT NULL,
+  `CreationTime` datetime(6) NOT NULL,
+  PRIMARY KEY (`Id`),
+  KEY `ticket_F_index_idx` (`TicketId`),
+  KEY `custom_F_index_idx` (`CustomMapId`),
+  CONSTRAINT `custom_F_index` FOREIGN KEY (`CustomMapId`) REFERENCES `custommap` (`Id`),
+  CONSTRAINT `ticket_F_index` FOREIGN KEY (`TicketId`) REFERENCES `ticketsmaster` (`Id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-## Map阶段:
+CREATE TABLE `custommap` (
+  `Id` char(36) NOT NULL,
+  `TenantId` char(36) DEFAULT NULL COMMENT '租户 ID',
+  `TypeId` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '外键关联 custom type',
+  `CreationTime` datetime(6) NOT NULL,
+  PRIMARY KEY (`Id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='租户 custom 映射表';
 
-### input. 
-在进行map计算之前，mapreduce会根据输入文件计算输入分片（input split），每个输入分片（input split）针对一个map任务
+CREATE TABLE `customtype` (
+  `Id` char(36) NOT NULL,
+  `Name` char(36) DEFAULT NULL,
+  `CreationTime` datetime(6) NOT NULL,
+  PRIMARY KEY (`Id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Custom Type 存储表';
 
-### map.
-就是程序员编写好的map函数了，因此map函数效率相对好控制，而且一般map操作都是本地化操作也就是在数据存储节点上进行
-
-### Partition.
-需要计算每一个map的结果需要发到哪个reduce端,partition数等于reducer数.默认采用HashPartition.
-
-### spill.
-此阶段分为sort和combine.首先分区过得数据会经过排序之后写入环形内存缓冲区.在达到阈值之后守护线程将数据溢出分区文件.
-
-### sort.
-在写入环形缓冲区前,对数据排序.<key,value,partition>格式排序
-### combine(可选).
-在溢出文件之前,提前开始combine,相当于本地化的reduce操作
-### merge. 
-spill结果会有很多个文件,但最终输出只有一个,故有一个merge操作会合并所有的本地文件,并且该文件会有一个对应的索引文件.
-
-## Reduce阶段:
-
-### copy.
-拉取数据,reduce启动数据copy线程(默认5个),通过Http请求对应节点的map task输出文件,copy的数据也会先放到内部缓冲区.之后再溢写,类似map端操作.
-### merge.
-合并多个copy的多个map端的数据.在一个reduce端先将多个map端的数据溢写到本地磁盘,之后再将多个文件合并成一个文件. 数据经过 内存->磁盘 , 磁盘->磁盘的过程.
-### output.
-merge阶段最后会生成一个文件,将此文件转移到内存中,shuffle阶段结束
-### reduce. 
-开始执行reduce任务,最后结果保留在hdfs上.
-
-
-# Hbase 组件有哪些
-## hive 内部表和外部表的区别
-建表时带有external关键字为外部表，否则为内部表
-内部表和外部表建表时都可以自己指定location
-删除表时，外部表不会删除对应的数据，只会删除元数据信息，内部表则会删除
-
-
-# AI
-=========================================
-
-### 机器学习：一切通过优化方法挖掘数据中规律的学科。
-### 深度学习：一切运用了神经网络作为参数结构进行优化的机器学习算法。
-       CNN 卷积神经网络 机器视觉
-       RNN 递归神经网络 NLP 自然语言处理
-
-### 强化学习：不仅能利用现有数据，还可以通过对环境的探索获得新数据，并利用新数据循环往复地更新迭代现有模型的机器学习算法。
-学习是为了更好地对环境进行探索，而探索是为了获取数据进行更好的学习。
-
-
-
-https://www.zhihu.com/question/279973545
-
-机器学习  
-2.学习分类 区别？
-==============
-2.1有监督（学习问题分类）
-   分类
-       2.1.1 朴素贝叶斯，决策树，逻辑回归，K最近邻和支持向量机（SVM）
-   回归
-       朴素贝叶斯，决策树，逻辑回归，K最近邻和支持向量机（SVM）
-
-2.2无监督
-   聚类
-       K-Means 均值漂移聚类 DBSCAN GMM(高斯混合) HAC（分层聚类）
-   关联
-	
-   降为
-
-   特征提取
-
-   
-
-
-
+CREATE TABLE `customtypeoptions` (
+  `Id` char(36) NOT NULL,
+  `TypeId` char(36) DEFAULT NULL,
+  `Name` datetime(6) NOT NULL,
+  PRIMARY KEY (`Id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Type  Option 值 存储列表';
+```
