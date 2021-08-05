@@ -101,6 +101,21 @@
 
 ```
 #Question2 
+## Log
+```
+ public class Log
+    {
+        public Log(long time, int action)
+        {
+            this.Time = time;
+            this.Action = action;
+        }
+
+        public long Time { get; set; }
+        public int Action { get; set; } //1:login 0:logout
+    }
+```
+
 ```
     public class Calculator
     {
